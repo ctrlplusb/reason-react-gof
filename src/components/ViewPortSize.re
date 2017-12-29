@@ -27,14 +27,13 @@ type state = {
 };
 
 type action =
-  | InitialLoad(option(onResizeHandler), option(dimensions))
-  | WindowResized(option(dimensions));
+  | InitialLoad(onResizeHandler, dimensions)
+  | WindowResized(dimensions);
 
-let getWindowDimensions = () =>
-  Some({
-    height: WindowRe.innerHeight(Webapi.Dom.window),
-    width: WindowRe.innerWidth(Webapi.Dom.window)
-  });
+let getWindowDimensions = () => {
+  height: WindowRe.innerHeight(Webapi.Dom.window),
+  width: WindowRe.innerWidth(Webapi.Dom.window)
+};
 
 let component = ReasonReact.reducerComponent("ViewPortSize");
 
@@ -50,7 +49,7 @@ let make = (~render, _children) => {
       Webapi.Dom.window
     );
     reduce(
-      () => InitialLoad(Some(onWindowResizeHandler), getWindowDimensions()),
+      () => InitialLoad(onWindowResizeHandler, getWindowDimensions()),
       ()
     );
     ReasonReact.NoUpdate;
@@ -68,9 +67,13 @@ let make = (~render, _children) => {
   },
   reducer: (action, state) =>
     switch action {
-    | InitialLoad(onWindowResizeHandler, dimensions) =>
-      ReasonReact.Update({onWindowResizeHandler, dimensions})
-    | WindowResized(dimensions) => ReasonReact.Update({...state, dimensions})
+    | InitialLoad(handler, dims) =>
+      ReasonReact.Update({
+        onWindowResizeHandler: Some(handler),
+        dimensions: Some(dims)
+      })
+    | WindowResized(dims) =>
+      ReasonReact.Update({...state, dimensions: Some(dims)})
     },
   render: ({state: {dimensions}}) =>
     switch dimensions {
